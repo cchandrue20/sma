@@ -34,8 +34,8 @@ function App() {
   return (
     <div className="app-container">
       <header className="app-header">
-        <h1>📚 Student Management System</h1>
-        <p>Manage student records with photos and details</p>
+        <h1>Student Management System</h1>
+        {/* <p>Manage student records with photos and details</p> */}
       </header>
 
       <main className="app-main">
@@ -68,7 +68,7 @@ function App() {
       </main>
 
       <footer className="app-footer">
-        <p>© 2026 Student Management System | Built with MERN Stack</p>
+        <p>© 2026 Student Management System</p>
       </footer>
     </div>
   );
