@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import './StudentList.css';
 
-function StudentList({ students, onStudentDeleted }) {
+function StudentList({ students, onStudentDeleted, onEditStudent }) {
   const [expandedId, setExpandedId] = useState(null);
 
   // Delete student
@@ -126,6 +126,13 @@ function StudentList({ students, onStudentDeleted }) {
 
               {/* Action Buttons */}
               <div className="card-actions">
+                <button
+                  className="edit-btn"
+                  type="button"
+                  onClick={() => onEditStudent && onEditStudent(student)}
+                >
+                  ✏️ Edit
+                </button>
                 <button 
                   className="delete-btn"
                   onClick={() => handleDelete(student._id)}

@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './StudentForm.css';
 
-function StudentForm({ onStudentAdded }) {
+function StudentForm({ onStudentAdded, editingStudent, onCancelEdit }) {
   const [formData, setFormData] = useState({
     name: '',
     studentId: '',
@@ -16,28 +16,53 @@ function StudentForm({ onStudentAdded }) {
   const [message, setMessage] = useState('');
   const [messageType, setMessageType] = useState('');
 
-  // Handle input changes
+  useEffect(() => {
+    if (editingStudent) {
+      setFormData({
+        name: editingStudent.name || '',
+        studentId: editingStudent.studentId || '',
+        class: editingStudent.class || 'CSE',
+        sportsInvolvement: editingStudent.sportsInvolvement || 'None',
+        rank: editingStudent.rank ? String(editingStudent.rank) : ''
+      });
+      setPhoto(null);
+      setPhotoPreview(editingStudent.photo || null);
+      setMessage('');
+      setMessageType('');
+    }
+  }, [editingStudent]);
+
+  const resetForm = () => {
+    setFormData({
+      name: '',
+      studentId: '',
+      class: 'CSE',
+      sportsInvolvement: 'None',
+      rank: ''
+    });
+    setPhoto(null);
+    setPhotoPreview(null);
+    setMessage('');
+    setMessageType('');
+  };
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prevState => ({
+    setFormData((prevState) => ({
       ...prevState,
       [name]: value
     }));
   };
 
-  // Handle photo selection
   const handlePhotoChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      // Check file size (max 5MB)
       if (file.size > 5 * 1024 * 1024) {
         setMessageType('error');
         setMessage('Photo size must be less than 5MB');
         return;
       }
-
       setPhoto(file);
-      // Create preview
       const reader = new FileReader();
       reader.onloadend = () => {
         setPhotoPreview(reader.result);
@@ -46,12 +71,10 @@ function StudentForm({ onStudentAdded }) {
     }
   };
 
-  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
     setMessage('');
 
-    // Validation
     if (!formData.name || !formData.studentId || !formData.rank) {
       setMessageType('error');
       setMessage('Please fill in all required fields');
@@ -61,7 +84,6 @@ function StudentForm({ onStudentAdded }) {
     setLoading(true);
 
     try {
-      // Create FormData for file upload
       const submitData = new FormData();
       submitData.append('name', formData.name);
       submitData.append('studentId', formData.studentId);
@@ -73,38 +95,26 @@ function StudentForm({ onStudentAdded }) {
         submitData.append('photo', photo);
       }
 
-      // Send request to backend
-      const response = await fetch('/api/students', {
-        method: 'POST',
+      const url = editingStudent ? `/api/students/${editingStudent._id}` : '/api/students';
+      const method = editingStudent ? 'PUT' : 'POST';
+
+      const response = await fetch(url, {
+        method,
         body: submitData
       });
-
       const data = await response.json();
 
       if (data.success) {
         setMessageType('success');
-        setMessage('✓ Student added successfully!');
-
-        // Reset form
-        setFormData({
-          name: '',
-          studentId: '',
-          class: 'CSE',
-          sportsInvolvement: 'None',
-          rank: ''
-        });
-        setPhoto(null);
-        setPhotoPreview(null);
-
-        // Trigger parent to refresh students list
+        setMessage(data.message || (editingStudent ? 'Student updated successfully' : 'Student added successfully'));
+        resetForm();
+        if (onCancelEdit) onCancelEdit();
         if (onStudentAdded) {
-          setTimeout(() => {
-            onStudentAdded();
-          }, 1000);
+          onStudentAdded();
         }
       } else {
         setMessageType('error');
-        setMessage('Error: ' + data.message);
+        setMessage(data.message || 'An error occurred');
       }
     } catch (error) {
       setMessageType('error');
@@ -117,7 +127,6 @@ function StudentForm({ onStudentAdded }) {
 
   return (
     <form className="student-form" onSubmit={handleSubmit}>
-      {/* Message Display */}
       {message && (
         <div className={`form-message form-message-${messageType}`}>
           {message}
@@ -220,7 +229,6 @@ function StudentForm({ onStudentAdded }) {
         </div>
       </div>
 
-      {/* Photo Preview */}
       {photoPreview && (
         <div className="photo-preview">
           <p>Photo Preview:</p>
@@ -228,14 +236,30 @@ function StudentForm({ onStudentAdded }) {
         </div>
       )}
 
-      {/* Submit Button */}
-      <button 
-        type="submit" 
-        className="submit-btn"
-        disabled={loading}
-      >
-        {loading ? 'Adding Student...' : '➕ Add Student'}
-      </button>
+      <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+        <button type="submit" className="submit-btn" disabled={loading}>
+          {loading
+            ? editingStudent
+              ? 'Updating…'
+              : 'Adding…'
+            : editingStudent
+            ? 'Update Student'
+            : 'Add Student'}
+        </button>
+        {editingStudent && (
+          <button
+            type="button"
+            className="submit-btn"
+            style={{ backgroundColor: '#6c757d' }}
+            onClick={() => {
+              if (onCancelEdit) onCancelEdit();
+              resetForm();
+            }}
+          >
+            Cancel
+          </button>
+        )}
+      </div>
     </form>
   );
 }

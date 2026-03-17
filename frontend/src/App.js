@@ -7,6 +7,7 @@ function App() {
   const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [editingStudent, setEditingStudent] = useState(null);
 
   // Fetch all students
   const fetchStudents = async () => {
@@ -50,7 +51,14 @@ function App() {
           {/* Student Form Section */}
           <section className="form-section">
             <h2>Add New Student</h2>
-            <StudentForm onStudentAdded={fetchStudents} />
+            <StudentForm
+              onStudentAdded={() => {
+                fetchStudents();
+                setEditingStudent(null);
+              }}
+              editingStudent={editingStudent}
+              onCancelEdit={() => setEditingStudent(null)}
+            />
           </section>
 
           {/* Students List Section */}
@@ -61,7 +69,11 @@ function App() {
             ) : students.length === 0 ? (
               <div className="no-data">No students found. Add a new student to get started!</div>
             ) : (
-              <StudentList students={students} onStudentDeleted={fetchStudents} />
+              <StudentList
+                students={students}
+                onStudentDeleted={fetchStudents}
+                onEditStudent={(student) => setEditingStudent(student)}
+              />
             )}
           </section>
         </div>

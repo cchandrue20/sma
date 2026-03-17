@@ -178,6 +178,24 @@
   border-top: 1px solid #dee2e6;
 }
 
+/* Edit button uses a softer accent than delete */
+.edit-btn {
+  flex: 1;
+  padding: 8px;
+  background-color: #17a2b8;
+  color: #fff;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.2s;
+  font-size: 0.85rem;
+}
+
+.edit-btn:hover {
+  background-color: #138496;
+}
+
 .delete-btn {
   flex: 1;
   padding: 8px;
